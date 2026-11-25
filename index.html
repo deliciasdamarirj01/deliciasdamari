@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delícias da Mari | Confeitaria Artesanal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-amber-50/40 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="bg-rose-700 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white/10 p-2 rounded-full">
+          <i data-lucide="cake" class="w-6 h-6 text-amber-300"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">Delícias da Mari | Confeitaria Artesanal</h1>
+          <p class="text-xs text-rose-200">Faça seu pedido e finalize no WhatsApp</p>
+        </div>
+      </div>
+
+      <!-- Botão Carrinho -->
+      <button onclick="toggleCarrinho()" class="relative bg-amber-400 hover:bg-amber-300 text-rose-950 font-semibold px-4 py-2 rounded-full transition-colors flex items-center gap-2 shadow">
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+        <span class="hidden sm:inline">Meu Pedido</span>
+        <span id="carrinho-count" class="bg-rose-700 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- BANNER PRINCIPAL -->
+  <section class="bg-gradient-to-r from-rose-800 to-rose-600 text-white py-8 px-4 text-center shadow-inner">
+    <div class="max-w-3xl mx-auto space-y-2">
+      <h2 class="text-2xl sm:text-3xl font-extrabold">Bolos, Docinhos, Salgados e Kits Festa!</h2>
+      <p class="text-sm sm:text-base text-rose-100">Monte sua festa escolhendo seus sabores favoritos.</p>
+    </div>
+  </section>
+
+  <!-- CATEGORIAS E PRODUTOS -->
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-grow">
+    <!-- Abas de Categoria -->
+    <div class="flex gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar border-b border-rose-200" id="abas-categorias">
+      <!-- Injetado via JS -->
+    </div>
+
+    <!-- Grid de Produtos -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="grid-produtos">
+      <!-- Injetado via JS -->
+    </div>
+  </main>
+
+  <!-- MODAL DE PERSONALIZAÇÃO -->
+  <div id="modal-personalizacao" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="fecharModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <h3 id="modal-titulo" class="text-xl font-bold text-slate-800 mb-1"></h3>
+      <p id="modal-descricao" class="text-sm text-slate-500 mb-4"></p>
+
+      <form id="form-personalizacao" class="space-y-4">
+        <div id="modal-opcoes" class="space-y-4">
+          <!-- Opções dinâmicas injetadas via JS -->
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Observações do Item</label>
+          <textarea id="modal-obs" placeholder="Ex: Escrever 'Parabéns Maria' no bolo / Detalhes adicionais" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none" rows="2"></textarea>
+        </div>
+
+        <div class="pt-3 flex items-center justify-between border-t">
+          <div>
+            <span class="text-xs text-slate-400 block">Valor do item</span>
+            <span id="modal-preco-calculado" class="text-xl font-bold text-rose-700">R$ 0,00</span>
+          </div>
+          <button type="button" id="btn-confirmar-modal" onclick="confirmarAdicaoCarrinho()" class="bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold px-6 py-2.5 rounded-xl transition-colors shadow-md">
+            Adicionar ao Pedido
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DRAWER / SLIDE OVER DO CARRINHO & CHECKOUT -->
+  <div id="drawer-carrinho" class="fixed inset-0 bg-slate-900/50 z-40 hidden transition-opacity">
+    <div class="fixed inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl flex flex-col z-50">
+      
+      <!-- Cabeçalho do Carrinho -->
+      <div class="bg-rose-700 text-white px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+          <h3 class="font-bold text-lg">Seu Pedido</h3>
+        </div>
+        <button onclick="toggleCarrinho()" class="text-rose-200 hover:text-white">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Lista de Itens do Carrinho -->
+      <div id="lista-carrinho" class="flex-grow overflow-y-auto p-5 space-y-4">
+        <!-- Injetado via JS -->
+      </div>
+
+      <!-- Formulário de Finalização -->
+      <div class="border-t bg-slate-50 p-5 space-y-4 shadow-inner">
+        <div class="flex justify-between items-center font-bold text-lg text-slate-800">
+          <span>Total:</span>
+          <span id="carrinho-total" class="text-rose-700">R$ 0,00</span>
+        </div>
+
+        <form id="form-checkout" onsubmit="processarEnvioWhatsApp(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Seu Nome *</label>
+            <input type="text" id="cliente-nome" required placeholder="Digite seu nome completo" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Telefone / WhatsApp *</label>
+            <input type="tel" id="cliente-telefone" required placeholder="(21) 99999-9999" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Entrega *</label>
+              <select id="tipo-entrega" onchange="toggleCampoEndereco()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                <option value="Retirada">Retirar no local</option>
+                <option value="Entrega">Entrega em Domicílio</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Forma de Pagamento *</label>
+              <select id="forma-pagamento" onchange="toggleCampoTroco()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                <option value="Pix">Pix</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+                <option value="Dinheiro">Dinheiro</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="box-endereco" class="hidden">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Endereço Completo de Entrega *</label>
+            <textarea id="cliente-endereco" placeholder="Rua, Número, Bairro, Complemento e Ponto de Referência" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none" rows="2"></textarea>
+          </div>
+
+          <div id="box-troco" class="hidden">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Troco para quanto?</label>
+            <input type="text" id="troco-para" placeholder="Ex: R$ 50,00 ou R$ 100,00" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Data e Hora da Festa *</label>
+            <input type="text" id="data-hora" required placeholder="Ex: 15/12 às 16h" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+          </div>
+
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2 mt-2">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            Enviar Pedido pelo WhatsApp
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-center py-6 text-xs mt-auto">
+    <p>© Delícias da Festa. Todos os direitos reservados.</p>
+    <p class="mt-1">Atendimento e orçamentos diretamente via WhatsApp.</p>
+  </footer>
+
+  <!-- SCRIPT DA APLICAÇÃO -->
+  <script>
+    // ==========================================
+    // CONFIGURAÇÃO DO SEU NÚMERO DE WHATSAPP
+    // Digite com código do país (55) + DDD + Número. Apenas números.
+    // ==========================================
+    const WHATSAPP_NUMBER = "5521986679447"; 
+
+    // CATEGORIAS EXATAS SOLICITADAS
+    const categorias = [
+      { id: 'bolos', nome: '1. Bolos', icone: 'cake' },
+      { id: 'docinhos', nome: '2. Docinhos', icone: 'cookie' },
+      { id: 'salgados-festa', nome: '3. Salgadinhos', icone: 'utensils' },
+      { id: 'kits', nome: '4. Kits Festa', icone: 'party-popper' }
+    ];
+
+    // PRODUTOS E CONFIGURAÇÕES
+    const produtos = [
+      // 1. Bolos de Festa
+      {
+        id: 1,
+        tipo: 'padrao',
+        categoria: 'bolos',
+        nome: 'Bolo de Festa Decorado',
+        descricao: 'Bolo fofinho com cobertura de chantininho e decoração especial.',
+        precoBase: 65.0,
+        rotuloPreco: 'A partir de R$ 65,00',
+        imagem: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80',
+        opcoes: [
+          { nome: 'Tamanho / Peso', id: 'tamanho', escolhas: [
+            { id: '1kg', rotulo: '1kg (serve 10 pessoas)', preco: 65.0 },
+            { id: '2kg', rotulo: '2kg (serve 20 pessoas)', preco: 120.0 },
+            { id: '3kg', rotulo: '3kg (serve 30 pessoas)', preco: 170.0 }
+          ]},
+          { nome: 'Massa', id: 'massa', escolhas: [
+            { id: 'baunilha', rotulo: 'Baunilha Tradicional', preco: 0 },
+            { id: 'chocolate', rotulo: 'Chocolate 50%', preco: 0 }
+          ]},
+          { nome: 'Recheio Principal', id: 'recheio', escolhas: [
+            { id: 'brigadeiro', rotulo: 'Brigadeiro Gourmet', preco: 0 },
+            { id: 'ninho-morango', rotulo: 'Leite Ninho com Morango', preco: 10.0 },
+            { id: 'doce-de-leite', rotulo: 'Doce de Leite com Coco', preco: 0 }
+          ]}
+        ]
+      },
+
+      // 2. Docinhos de Festa
+      {
+        id: 2,
+        tipo: 'multi-sabores',
+        categoria: 'docinhos',
+        nome: 'Docinhos de Festa',
+        descricao: 'Escolha os sabores e a quantidade de cada um. Pedido mínimo de 30 unidades no total.',
+        precoUnitario: 0.90,
+        minimoUnidades: 30,
+        rotuloPreco: 'R$ 0,90 / un (Mín. 30 un)',
+        imagem: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=500&q=80',
+        sabores: [
+          'Brigadeiro',
+          'Beijinho',
+          'Cajuzinho',
+          'Amendoim',
+          'Ninho',
+          'Churros',
+          'Olho de sogra'
+        ]
+      },
+
+      // 3.1 Salgadinhos de Festa - Fritos
+      {
+        id: 3,
+        tipo: 'multi-sabores',
+        categoria: 'salgados-festa',
+        nome: 'Salgadinhos Fritos para Festa',
+        descricao: 'Escolha os sabores e quantidades. Pedido mínimo de 30 unidades no total.',
+        precoUnitario: 0.80,
+        minimoUnidades: 30,
+        rotuloPreco: 'R$ 0,80 / un (Mín. 30 un)',
+        imagem: 'https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=500&q=80',
+        sabores: [
+          'Enroladinho de salsicha',
+          'Coxinha',
+          'Bolinha de queijo',
+          'Risole',
+          'Calabresa'
+        ]
+      },
+
+      // 3.2 Salgadinhos de Festa - Assados
+      {
+        id: 4,
+        tipo: 'multi-sabores',
+        categoria: 'salgados-festa',
+        nome: 'Salgadinhos Assados para Festa',
+        descricao: 'Escolha os sabores e quantidades. Pedido mínimo de 30 unidades no total.',
+        precoUnitario: 0.95,
+        minimoUnidades: 30,
+        rotuloPreco: 'R$ 0,95 / un (Mín. 30 un)',
+        imagem: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=500&q=80',
+        sabores: [
+          'Joelho',
+          'Hambúrguer',
+          'Esfirra',
+          'Croissant de frango'
+        ]
+      },
+
+      // 4. Kits Festa
+      {
+        id: 5,
+        tipo: 'padrao',
+        categoria: 'kits',
+        nome: 'Kit Festa 1 (10 a 15 Pessoas)',
+        descricao: 'Inclui: 1kg de Bolo + 50 Salgadinhos + 30 Docinhos.',
+        precoBase: 145.0,
+        rotuloPreco: 'R$ 145,00',
+        imagem: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=500&q=80',
+        opcoes: [
+          { nome: 'Sabor do Bolo', id: 'bolo-kit', escolhas: [
+            { id: 'brigadeiro', rotulo: 'Brigadeiro', preco: 0 },
+            { id: 'ninho', rotulo: 'Leite Ninho', preco: 0 },
+            { id: 'doce-leite', rotulo: 'Doce de Leite', preco: 0 }
+          ]},
+          { nome: 'Tipo de Salgadinhos do Kit', id: 'salgados-kit', escolhas: [
+            { id: 'fritos', rotulo: '50 Salgadinhos Fritos Sortidos', preco: 0 },
+            { id: 'assados', rotulo: '50 Salgadinhos Assados Sortidos', preco: 5.0 },
+            { id: 'misto', rotulo: '25 Fritos + 25 Assados', preco: 3.0 }
+          ]}
+        ]
+      },
+      {
+        id: 6,
+        tipo: 'padrao',
+        categoria: 'kits',
+        nome: 'Kit Festa 2 (20 a 25 Pessoas)',
+        descricao: 'Inclui: 2kg de Bolo + 100 Salgadinhos + 50 Docinhos.',
+        precoBase: 245.0,
+        rotuloPreco: 'R$ 245,00',
+        imagem: 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=500&q=80',
+        opcoes: [
+          { nome: 'Sabor do Bolo', id: 'bolo-kit', escolhas: [
+            { id: 'brigadeiro', rotulo: 'Brigadeiro', preco: 0 },
+            { id: 'ninho', rotulo: 'Leite Ninho', preco: 0 },
+            { id: 'doce-leite', rotulo: 'Doce de Leite', preco: 0 }
+          ]},
+          { nome: 'Tipo de Salgadinhos do Kit', id: 'salgados-kit', escolhas: [
+            { id: 'fritos', rotulo: '100 Salgadinhos Fritos Sortidos', preco: 0 },
+            { id: 'assados', rotulo: '100 Salgadinhos Assados Sortidos', preco: 10.0 },
+            { id: 'misto', rotulo: '50 Fritos + 50 Assados', preco: 5.0 }
+          ]}
+        ]
+      }
+    ];
+
+    // ESTADO DA APLICAÇÃO
+    let categoriaAtiva = 'bolos';
+    let carrinho = [];
+    let produtoEmEdicao = null;
+    let quantidadesSaboresModal = {};
+
+    // INICIALIZAÇÃO
+    document.addEventListener('DOMContentLoaded', () => {
+      renderizarAbas();
+      renderizarProdutos();
+      atualizarCarrinhoUI();
+      lucide.createIcons();
+    });
+
+    // RENDERIZAR ABAS DE CATEGORIA
+    function renderizarAbas() {
+      const container = document.getElementById('abas-categorias');
+      container.innerHTML = categorias.map(cat => `
+        <button onclick="selecionarCategoria('${cat.id}')" class="flex items-center gap-2 px-4 py-2.5 rounded-full whitespace-nowrap text-sm font-semibold transition-all ${
+          categoriaAtiva === cat.id 
+            ? 'bg-rose-700 text-white shadow-md' 
+            : 'bg-white text-slate-600 border border-slate-200 hover:bg-rose-50'
+        }">
+          <i data-lucide="${cat.icone}" class="w-4 h-4"></i>
+          ${cat.nome}
+        </button>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function selecionarCategoria(catId) {
+      categoriaAtiva = catId;
+      renderizarAbas();
+      renderizarProdutos();
+    }
+
+    // RENDERIZAR GRID DE PRODUTOS
+    function renderizarProdutos() {
+      const container = document.getElementById('grid-produtos');
+      const produtosFiltrados = produtos.filter(p => p.categoria === categoriaAtiva);
+
+      container.innerHTML = produtosFiltrados.map(prod => `
+        <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col">
+          <img src="${prod.imagem}" alt="${prod.nome}" class="w-full h-48 object-cover">
+          <div class="p-5 flex flex-col flex-grow">
+            <h3 class="font-bold text-slate-800 text-lg mb-1">${prod.nome}</h3>
+            <p class="text-slate-500 text-xs mb-4 flex-grow">${prod.descricao}</p>
+            
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div>
+                <span class="text-xs text-slate-400 block">Valor</span>
+                <span class="text-base font-bold text-rose-700">${prod.rotuloPreco}</span>
+              </div>
+              <button onclick="abrirModalPersonalizacao(${prod.id})" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-colors flex items-center gap-1 shadow-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Escolher
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // MODAL DE PERSONALIZAÇÃO
+    function abrirModalPersonalizacao(produtoId) {
+      produtoEmEdicao = JSON.parse(JSON.stringify(produtos.find(p => p.id === produtoId)));
+      document.getElementById('modal-titulo').innerText = produtoEmEdicao.nome;
+      document.getElementById('modal-descricao').innerText = produtoEmEdicao.descricao;
+      document.getElementById('modal-obs').value = '';
+
+      const containerOpcoes = document.getElementById('modal-opcoes');
+      containerOpcoes.innerHTML = '';
+      quantidadesSaboresModal = {};
+
+      if (produtoEmEdicao.tipo === 'multi-sabores') {
+        produtoEmEdicao.sabores.forEach(sabor => {
+          quantidadesSaboresModal[sabor] = 0;
+        });
+
+        const divAlerta = document.createElement('div');
+        divAlerta.id = 'alerta-minimo-box';
+        divAlerta.className = 'p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between';
+        divAlerta.innerHTML = `
+          <span>Pedido mínimo: <strong>${produtoEmEdicao.minimoUnidades} unidades</strong></span>
+          <span id="contador-unidades-modal" class="font-bold text-sm">0 / ${produtoEmEdicao.minimoUnidades} un</span>
+        `;
+        containerOpcoes.appendChild(divAlerta);
+
+        const listaSabores = document.createElement('div');
+        listaSabores.className = 'space-y-2 max-h-64 overflow-y-auto pr-1';
+        
+        produtoEmEdicao.sabores.forEach((sabor, idx) => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50/60';
+          itemDiv.innerHTML = `
+            <span class="text-sm font-medium text-slate-700">${sabor}</span>
+            <div class="flex items-center gap-1">
+              <input type="number" min="0" step="1" id="input-sabor-${idx}" value="0" onchange="definirQtdSabor('${sabor}', this.value)" oninput="definirQtdSabor('${sabor}', this.value)" class="w-20 text-center border border-slate-300 rounded-lg py-1.5 text-sm font-bold text-slate-800 bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+            </div>
+          `;
+          listaSabores.appendChild(itemDiv);
+        });
+
+        containerOpcoes.appendChild(listaSabores);
+
+      } else if (produtoEmEdicao.opcoes && produtoEmEdicao.opcoes.length > 0) {
+        produtoEmEdicao.opcoes.forEach(grupo => {
+          const divGrupo = document.createElement('div');
+          divGrupo.innerHTML = `
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">${grupo.nome}</label>
+            <div class="space-y-1.5">
+              ${grupo.escolhas.map((opcao, idx) => `
+                <label class="flex items-center justify-between p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50">
+                  <div class="flex items-center gap-2">
+                    <input type="radio" name="opcao_${grupo.id}" value="${opcao.id}" ${idx === 0 ? 'checked' : ''} onchange="atualizarEstadoModal()" class="text-rose-600 focus:ring-rose-500">
+                    <span class="text-sm font-medium text-slate-700">${opcao.rotulo}</span>
+                  </div>
+                  ${opcao.preco !== 0 ? `<span class="text-xs font-semibold text-rose-600">${opcao.preco > 0 ? '+' : ''} R$ ${opcao.preco.toFixed(2).replace('.', ',')}</span>` : ''}
+                </label>
+              `).join('')}
+            </div>
+          `;
+          containerOpcoes.appendChild(divGrupo);
+        });
+      }
+
+      atualizarEstadoModal();
+      document.getElementById('modal-personalizacao').classList.remove('hidden');
+    }
+
+    function definirQtdSabor(sabor, valorStr) {
+      const valor = Math.max(0, parseInt(valorStr) || 0);
+      quantidadesSaboresModal[sabor] = valor;
+      atualizarEstadoModal();
+    }
+
+    function fecharModal() {
+      document.getElementById('modal-personalizacao').classList.add('hidden');
+      produtoEmEdicao = null;
+    }
+
+    function atualizarEstadoModal() {
+      if (!produtoEmEdicao) return;
+      const btnConfirmar = document.getElementById('btn-confirmar-modal');
+      let precoFinal = 0;
+
+      if (produtoEmEdicao.tipo === 'multi-sabores') {
+        const totalUnidades = Object.values(quantidadesSaboresModal).reduce((a, b) => a + b, 0);
+        precoFinal = totalUnidades * produtoEmEdicao.precoUnitario;
+
+        const alertaBox = document.getElementById('alerta-minimo-box');
+        const contadorEl = document.getElementById('contador-unidades-modal');
+
+        if (totalUnidades >= produtoEmEdicao.minimoUnidades) {
+          alertaBox.className = 'p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between';
+          contadorEl.innerText = `${totalUnidades} unidades (Mínimo atingido ✓)`;
+          btnConfirmar.disabled = false;
+        } else {
+          alertaBox.className = 'p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between';
+          contadorEl.innerText = `${totalUnidades} / ${produtoEmEdicao.minimoUnidades} un`;
+          btnConfirmar.disabled = true;
+        }
+      } else {
+        precoFinal = produtoEmEdicao.precoBase;
+        if (produtoEmEdicao.opcoes) {
+          produtoEmEdicao.opcoes.forEach(grupo => {
+            const selecionado = document.querySelector(`input[name="opcao_${grupo.id}"]:checked`);
+            if (selecionado) {
+              const opcaoObjeto = grupo.escolhas.find(e => e.id === selecionado.value);
+              if (opcaoObjeto) {
+                if (grupo.id === 'tamanho') {
+                  precoFinal = opcaoObjeto.preco;
+                } else {
+                  precoFinal += opcaoObjeto.preco;
+                }
+              }
+            }
+          });
+        }
+        btnConfirmar.disabled = false;
+      }
+
+      document.getElementById('modal-preco-calculado').innerText = `R$ ${precoFinal.toFixed(2).replace('.', ',')}`;
+      return precoFinal;
+    }
+
+    // GERENCIAMENTO DO CARRINHO
+    function confirmarAdicaoCarrinho() {
+      const precoCalculado = atualizarEstadoModal();
+      const detalhesList = [];
+      let nomeItemCarrinho = produtoEmEdicao.nome;
+
+      if (produtoEmEdicao.tipo === 'multi-sabores') {
+        const totalUnidades = Object.values(quantidadesSaboresModal).reduce((a, b) => a + b, 0);
+        if (totalUnidades < produtoEmEdicao.minimoUnidades) {
+          alert(`O pedido mínimo para este item é de ${produtoEmEdicao.minimoUnidades} unidades.`);
+          return;
+        }
+
+        nomeItemCarrinho = `${produtoEmEdicao.nome} (${totalUnidades} un)`;
+        Object.entries(quantidadesSaboresModal).forEach(([sabor, qtd]) => {
+          if (qtd > 0) {
+            detalhesList.push(`${qtd}x ${sabor}`);
+          }
+        });
+      } else if (produtoEmEdicao.opcoes) {
+        produtoEmEdicao.opcoes.forEach(grupo => {
+          const selecionado = document.querySelector(`input[name="opcao_${grupo.id}"]:checked`);
+          if (selecionado) {
+            const opcaoObjeto = grupo.escolhas.find(e => e.id === selecionado.value);
+            if (opcaoObjeto) {
+              detalhesList.push(`${grupo.nome}: ${opcaoObjeto.rotulo}`);
+            }
+          }
+        });
+      }
+
+      const obsTexto = document.getElementById('modal-obs').value.trim();
+
+      const itemCarrinho = {
+        cartItemId: Date.now(),
+        produtoId: produtoEmEdicao.id,
+        nome: nomeItemCarrinho,
+        precoUnitario: precoCalculado,
+        qtd: 1,
+        detalhes: detalhesList.join(', '),
+        obs: obsTexto
+      };
+
+      carrinho.push(itemCarrinho);
+      fecharModal();
+      atualizarCarrinhoUI();
+      toggleCarrinho(true);
+    }
+
+    function alterarQuantidade(cartItemId, delta) {
+      const idx = carrinho.findIndex(i => i.cartItemId === cartItemId);
+      if (idx !== -1) {
+        carrinho[idx].qtd += delta;
+        if (carrinho[idx].qtd <= 0) {
+          carrinho.splice(idx, 1);
+        }
+      }
+      atualizarCarrinhoUI();
+    }
+
+    function calcularTotalCarrinho() {
+      return carrinho.reduce((acc, item) => acc + (item.precoUnitario * item.qtd), 0);
+    }
+
+    function atualizarCarrinhoUI() {
+      const totalItens = carrinho.reduce((acc, item) => acc + item.qtd, 0);
+      document.getElementById('carrinho-count').innerText = totalItens;
+
+      const containerLista = document.getElementById('lista-carrinho');
+      if (carrinho.length === 0) {
+        containerLista.innerHTML = `
+          <div class="text-center py-16 text-slate-400">
+            <i data-lucide="shopping-bag" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+            <p class="font-medium">Seu carrinho está vazio.</p>
+            <p class="text-xs">Escolha produtos no cardápio para iniciar seu pedido.</p>
+          </div>
+        `;
+      } else {
+        containerLista.innerHTML = carrinho.map(item => `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+            <div class="flex justify-between items-start gap-2">
+              <h4 class="font-bold text-slate-800 text-sm">${item.nome}</h4>
+              <span class="font-bold text-sm text-rose-700 whitespace-nowrap">R$ ${(item.precoUnitario * item.qtd).toFixed(2).replace('.', ',')}</span>
+            </div>
+            ${item.detalhes ? `<p class="text-xs text-slate-600 leading-relaxed">└ ${item.detalhes}</p>` : ''}
+            ${item.obs ? `<p class="text-xs text-amber-700 italic">└ Obs: ${item.obs}</p>` : ''}
+
+            <div class="flex justify-between items-center pt-2">
+              <span class="text-xs text-slate-400">R$ ${item.precoUnitario.toFixed(2).replace('.', ',')} cada</span>
+              <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                <button onclick="alterarQuantidade(${item.cartItemId}, -1)" class="text-slate-500 hover:text-rose-600 font-bold px-1">-</button>
+                <span class="text-xs font-bold text-slate-800 w-4 text-center">${item.qtd}</span>
+                <button onclick="alterarQuantidade(${item.cartItemId}, 1)" class="text-slate-500 hover:text-rose-600 font-bold px-1">+</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const total = calcularTotalCarrinho();
+      document.getElementById('carrinho-total').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+
+      lucide.createIcons();
+    }
+
+    function toggleCarrinho(forcarAbertura = false) {
+      const drawer = document.getElementById('drawer-carrinho');
+      if (forcarAbertura) {
+        drawer.classList.remove('hidden');
+      } else {
+        drawer.classList.toggle('hidden');
+      }
+    }
+
+    // CAMPOS DINÂMICOS DO FORMULÁRIO DE CHECKOUT
+    function toggleCampoEndereco() {
+      const tipo = document.getElementById('tipo-entrega').value;
+      const box = document.getElementById('box-endereco');
+      const input = document.getElementById('cliente-endereco');
+      if (tipo === 'Entrega') {
+        box.classList.remove('hidden');
+        input.setAttribute('required', 'required');
+      } else {
+        box.classList.add('hidden');
+        input.removeAttribute('required');
+      }
+    }
+
+    function toggleCampoTroco() {
+      const pgto = document.getElementById('forma-pagamento').value;
+      const box = document.getElementById('box-troco');
+      if (pgto === 'Dinheiro') {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    // PROCESSAMENTO E ENVIO PARA O WHATSAPP REAL
+    function processarEnvioWhatsApp(e) {
+      e.preventDefault();
+
+      if (carrinho.length === 0) {
+        alert("Seu carrinho está vazio! Adicione produtos antes de enviar o pedido.");
+        return;
+      }
+
+      const nome = document.getElementById('cliente-nome').value.trim();
+      const telefone = document.getElementById('cliente-telefone').value.trim();
+      const tipoEntrega = document.getElementById('tipo-entrega').value;
+      const endereco = document.getElementById('cliente-endereco')?.value.trim() || '';
+      const pagamento = document.getElementById('forma-pagamento').value;
+      const troco = document.getElementById('troco-para')?.value.trim() || '';
+      const dataHora = document.getElementById('data-hora').value.trim();
+
+      let msg = `*NOVO PEDIDO - DELÍCIAS DA FESTA*\n`;
+      msg += `-----------------------------------\n\n`;
+
+      msg += `*ITENS DO PEDIDO:*\n`;
+      carrinho.forEach(item => {
+        msg += `*${item.qtd}x ${item.nome}* - R$ ${(item.precoUnitario * item.qtd).toFixed(2).replace('.', ',')}\n`;
+        if (item.detalhes) {
+          msg += `   └ _Sabores/Opções:_ ${item.detalhes}\n`;
+        }
+        if (item.obs) {
+          msg += `   └ _Obs:_ ${item.obs}\n`;
+        }
+        msg += `\n`;
+      });
+
+      const total = calcularTotalCarrinho();
+      msg += `-----------------------------------\n`;
+      msg += `*TOTAL DO PEDIDO:* R$ ${total.toFixed(2).replace('.', ',')}\n`;
+      msg += `-----------------------------------\n\n`;
+
+      msg += `*DADOS PARA ENTREGA / CLIENTE:*\n`;
+      msg += `👤 *Nome:* ${nome}\n`;
+      msg += `📱 *Telefone:* ${telefone}\n`;
+      msg += `🚚 *Modalidade:* ${tipoEntrega}\n`;
+
+      if (tipoEntrega === 'Entrega') {
+        msg += `📍 *Endereço:* ${endereco}\n`;
+      }
+
+      msg += `📅 *Data/Hora da Festa:* ${dataHora}\n`;
+      msg += `💳 *Forma de Pagamento:* ${pagamento}\n`;
+
+      if (pagamento === 'Dinheiro' && troco) {
+        msg += `💵 *Troco para:* ${troco}\n`;
+      }
+
+      const mensagemURLEncoded = encodeURIComponent(msg);
+      const urlFinal = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${mensagemURLEncoded}`;
+
+      window.open(urlFinal, '_blank');
+    }
+  </script>
+</body>
+</html>
